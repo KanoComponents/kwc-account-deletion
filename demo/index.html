@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+        <title>kwc-account-deletion demo</title>
+
+        <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+        <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+        <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+        <link rel="import" href="../kwc-account-deletion.html">
+
+        <custom-style>
+          <style is="custom-style" include="demo-pages-shared-styles"></style>
+        </custom-style>
+    </head>
+    <body>
+        <div class="vertical-section-container centered">
+            <h3>Basic kwc-account-deletion demo</h3>
+            <demo-snippet>
+                <template is="dom-bind" id="demo">
+                    <kwc-account-deletion email="[[email]]"
+                                          updating="[[updating]]"
+                                          updated="[[updated]]"
+                                          on-delete-account="deleteAccount">
+                    </kwc-account-deletion>
+                </template>
+            </demo-snippet>
+            <script>
+                document.addEventListener('WebComponentsReady', () => {
+                    demo.email = 'test@kano.me';
+                    demo.deleteAccount = function (e) {
+                        console.log('Deleting', e);
+                        demo.updating = true;
+                        window.setTimeout(() => {
+                            demo.updating = false;
+                            demo.updated = true;
+                        }, 1500);
+                    }
+                });
+            </script>
+        </div>
+    </body>
+</html>

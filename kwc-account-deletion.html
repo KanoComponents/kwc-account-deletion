@@ -1,0 +1,313 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-pages/iron-pages.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../paper-spinner/paper-spinner-lite.html">
+<link rel="import" href="../kwc-style/kwc-style.html">
+<link rel="import" href="../kwc-button/kwc-button.html">
+
+
+<!--
+`kwc-account-deletion`
+A small component to allow the user to delete their account.
+
+@demo demo/index.html
+-->
+
+<dom-module id="kwc-account-deletion">
+    <template>
+        <style is="custom-style" include="input-text"></style>
+        <style>
+            :root {
+                --paper-spinner-color: var(--color-kano-orange);
+            }
+            :host {
+                display: block;
+            }
+            :host h3,
+            :host h4 {
+                color: var(--color-black);
+                font-family: var(--font-heading);
+                margin: 0 0 4px 0;
+                text-transform: uppercase;
+            }
+            :host h3 {
+                font-size: 18px;
+            }
+            :host h4 {
+                font-size: 16px;
+            }
+            :host p,
+            :host li {
+                font-family: var(--font-body);
+                font-size: 16px;
+            }
+            :host p {
+                color: var(--color-grey);
+                margin: 0 0 32px 0;
+            }
+            :host .view.confirmation h4 {
+                color: var(--color-cinnabar);
+            }
+            :host .view.confirmation,
+            :host .view.updating,
+            :host .view.updated,
+            :host .view.error {
+                padding-top: 16px;
+            }
+            :host .view.updating,
+            :host .view.updated,
+            :host .view.error {
+                text-align: center;
+            }
+            :host .view.updating p,
+            :host .view.updated p,
+            :host .view.error p {
+                color: var(--color-abbey);
+                font-weight: bold;
+            }
+            :host form {
+                @apply --layout-vertical;
+                @apply --layout-start-justified;
+                @apply --layout-start;
+            }
+            :host input {
+                @apply var(--kwc-input-base);
+                width: 100%;
+            }
+            :host input[invalid] {
+                border-color: var(--color-cinnabar);
+            }
+            :host .errors {
+                @apply --layout-flex-auto;
+                color: var(--color-cinnabar);
+                list-style: none;
+                margin: 16px 0 32px 0;
+                min-height: 16px;
+                padding: 0;
+            }
+            :host .error ~ .error {
+                margin-top: 8px;
+            }
+        </style>
+        <h3>Delete account</h3>
+        <iron-pages id="views"
+                    selected="[[_page]]"
+                    attr-for-selected="name"
+                    fallback-selection="form"
+                    selected-attribute="active">
+        <div class="view" name="form">
+            <p>Confirm your email address to proceed.</p>
+            <form on-submit="_validateEmailConfirmation" novalidate>
+                <input id="_emailConfirmation"
+                       type="email"
+                       value="{{_emailConfirmation::input}}"
+                       on-focus="_clearErrors"
+                       placeholder="Your email"
+                       invalid$="[[_emailConfirmationInValid(_emailConfirmation, _emailValid)]]"
+                       no-validation
+                       required />
+                 <ul class="errors">
+                      <template is="dom-repeat" items="[[_errorMessages]]">
+                         <li class="error">[[item]]</li>
+                      </template>
+                 </ul>
+                 <kwc-button type="submit"
+                             variant="tertiary"
+                             square
+                             on-tap="_validateEmailConfirmation">
+                     Submit
+                 </kwc-button>
+            </form>
+        </div>
+        <div class="view confirmation" name="confirmation">
+            <h4>Are you sure?</h4>
+            <p>All data related to your account (Swag, settings, progress, XP, backups) will be permanently deleted.</p>
+            <kwc-button type="button"
+                        variant="warning"
+                        square
+                        on-tap="_confirmDeletion">
+                Confirm
+            </kwc-button>
+        </div>
+        <div class="view updating" name="updating">
+            <p>Deleting your account...</p>
+            <paper-spinner-lite active="[[updating]]"></paper-spinner-lite>
+        </div>
+        <div class="view error" name="error">
+            <p>Sorry, something went wrong.</p>
+            <kwc-button type="button"
+                        variant="primary"
+                        square
+                        on-tap="_reset">
+                Try again
+            </kwc-button>
+        </div>
+        <div class="view updated" name="updated">
+            <p>Your account has been deleted</p>
+            <kwc-button type="button"
+                        variant="primary"
+                        square
+                        on-tap="_reset">
+                Got it
+            </kwc-button>
+        </div>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'kwc-account-deletion',
+            properties: {
+                /** The user's email, provided by the parent component */
+                email: {
+                    type: String,
+                    value: null
+                },
+                /**
+                 * Boolean to indicate whether the email confirmation is valid
+                 */
+                _emailValid: {
+                    type: Boolean,
+                    value: true
+                },
+                /** The email confirmation entered by the user */
+                _emailConfirmation: {
+                    type: String,
+                    value: null
+                },
+                /** The update error (if applicable) */
+                error: {
+                    type: String
+                },
+                /** The errors for each field in the form */
+                errors: {
+                    type: Object,
+                    value: () => {
+                        return {}
+                    }
+                },
+                /** An array of error messages computed from the errors object */
+                _errorMessages: {
+                    type: Array,
+                    computed: '_computeErrorMessages(errors.*)'
+                },
+                /**
+                 * Boolean to indicate whether there has been an error with
+                 * the update
+                 */
+                _updateError: {
+                    type: Boolean,
+                    computed: '_computeUpdateError(error)',
+                    obserer: '_updateErrored'
+                },
+                /** Boolean to indicate whether the email has been updated */
+                updated: {
+                    type: Boolean,
+                    value: false,
+                    observer: '_updated'
+                },
+                /** Boolean to indicate whether the email is updating */
+                updating: {
+                    type: Boolean,
+                    value: false,
+                    observer: '_updating'
+                },
+            },
+            /** Clear all errors */
+            _clearErrors () {
+                this.set('errors', {});
+            },
+            /**
+             * Generate an array of error messages from the errors object
+             * @param {Object} errors
+             * @returns {Array}
+             */
+            _computeErrorMessages (errors) {
+                let messages = [];
+                if (!errors || !errors.base) {
+                    return messages;
+                }
+                for (let type in errors.base) {
+                    messages.push(errors.base[type]);
+                }
+                return messages.filter(message => {
+                    return message !== null && message !== undefined;
+                });
+            },
+            /**
+             * Return a boolean to indicate whether there is an update error
+             * @param {String} error
+             * @returns {Boolean}
+             */
+            _computeUpdateError (error) {
+                return error && error.length ? true : false;
+            },
+            /** Fire the event to confirm the account deletion */
+            _confirmDeletion () {
+                this.fire('delete-account');
+            },
+            /**
+             * Compute whether the email confirmation is valid – the user has
+             * entered some value, and that value is different from the email
+             * on their account
+             * @param {String} emailConfirmation
+             * @param {Boolean} emailValid
+             * @returns {Boolean}
+             */
+            _emailConfirmationInValid (emailConfirmation, emailValid) {
+                let valueSet = emailConfirmation && emailConfirmation.length;
+                return valueSet && !emailValid ? true : false;
+            },
+            /** Reset the view and clear the errors */
+            _reset () {
+                this._page = 'form';
+                this._clearErrors();
+            },
+            /**
+             * Change to the page to the `updated` view when component has been
+             * updated
+             * @param {Boolean} current The current value of `updated`
+             */
+            _updated (current) {
+                if (current) {
+                    this._page = 'updated';
+                }
+            },
+            /**
+             * Change to the page to the `error` view when the update has
+             * errored
+             * @param {Boolean} current The current value of `_updateError`
+             */
+            _updateErrored (current) {
+                if (current) {
+                    this._page = 'error';
+                }
+            },
+            /**
+             * Change to the page to the `updating` view when component is
+             * updating
+             * @param {Boolean} current The current value of `updating`
+             */
+            _updating (current) {
+                if (current) {
+                    this._page = 'updating';
+                }
+            },
+            /**
+             * Validate the confirmation email and set the `_emailValid` and
+             * `errors` accordingly, and update the `_page` to change the view
+             * @param {Event} e The submission event from the form
+             */
+            _validateEmailConfirmation (e) {
+                e.preventDefault();
+                if (this._emailConfirmation === this.email) {
+                    this.set('errors.email', null);
+                    this._page = 'confirmation';
+                    this._emailValid = true;
+                } else {
+                    this._emailValid = false;
+                    this.set('errors.email', 'The email provided does not match the email for your account');
+                }
+            }
+        });
+    </script>
+</dom-module>

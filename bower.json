@@ -1,0 +1,25 @@
+{
+  "name": "kwc-account-deletion",
+  "description": "A small component to allow the user to delete their account.",
+  "main": "kwc-account-deletion.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.9.0",
+    "kwc-style": "git@github.com:KanoComponents/kwc-style.git#v1.x",
+    "kwc-button": "git@github.com:KanoComponents/kwc-button.git#v1.x",
+    "kwc-behaviours": "git@github.com:KanoComponents/kwc-behaviours.git",
+    "paper-spinner": "^2.0.0",
+    "iron-flex-layout": "^2.0.0",
+    "iron-pages": "^2.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+  },
+  "resolutions": {
+    "iron-icon": "^1.0.0",
+    "iron-iconset-svg": "^1.0.0",
+    "webcomponentsjs": "^0.7.0"
+  }
+}
