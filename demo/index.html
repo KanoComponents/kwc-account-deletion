@@ -13,7 +13,11 @@
         <link rel="import" href="../kwc-account-deletion.html">
 
         <custom-style>
-          <style is="custom-style" include="demo-pages-shared-styles"></style>
+          <style is="custom-style" include="demo-pages-shared-styles">
+              .introduction {
+                  margin: 0 0 24px 0;
+              }
+          </style>
         </custom-style>
     </head>
     <body>
@@ -21,6 +25,7 @@
             <h3>Basic kwc-account-deletion demo</h3>
             <demo-snippet>
                 <template is="dom-bind" id="demo">
+                    <p class="introduction">Account email is <strong>[[email]]</strong></p>
                     <kwc-account-deletion email="[[email]]"
                                           updating="[[updating]]"
                                           updated="[[updated]]"
@@ -32,7 +37,6 @@
                 document.addEventListener('WebComponentsReady', () => {
                     demo.email = 'test@kano.me';
                     demo.deleteAccount = function (e) {
-                        console.log('Deleting', e);
                         demo.updating = true;
                         window.setTimeout(() => {
                             demo.updating = false;

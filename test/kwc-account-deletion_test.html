@@ -1,30 +1,109 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
 
-    <title>kwc-account-deletion test</title>
+        <title>kwc-account-deletion test</title>
 
-    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
-    <script src="../../web-component-tester/browser.js"></script>
+        <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+        <script src="../../web-component-tester/browser.js"></script>
 
-    <link rel="import" href="../kwc-account-deletion.html">
-  </head>
-  <body>
-    <test-fixture id="basic">
-      <template>
-        <kwc-account-deletion></kwc-account-deletion>
-      </template>
-    </test-fixture>
+        <link rel="import" href="../kwc-account-deletion.html">
+    </head>
+    <body>
+        <test-fixture id="basic">
+            <template>
+                <kwc-account-deletion></kwc-account-deletion>
+            </template>
+        </test-fixture>
+        <test-fixture id="updated">
+            <template>
+                <kwc-account-deletion></kwc-account-deletion>
+            </template>
+        </test-fixture>
 
-    <script>
-      suite('kwc-account-deletion', function() {
-        test('instantiating the element works', function() {
-          var element = fixture('basic');
-          assert.equal(element.is, 'kwc-account-deletion');
-        });
-      });
-    </script>
-  </body>
+        <script>
+            var basic,
+                updated,
+                email = 'test@kano.me',
+                altEmail = 'another@kano.me',
+                invalidEmail = 'invalid';
+
+            setup(function () {
+                basic = fixture('basic');
+                updated = fixture('updated');
+                updated.email = email;
+            });
+
+            suite('Component defaults', function() {
+                test('instantiating the element works', function() {
+                    assert.equal(basic.is, 'kwc-account-deletion');
+                });
+
+                test('the email confirmation should be null by default', function() {
+                    assert.equal(basic._emailConfirmation, null);
+                });
+
+                test('the page should be the email confirmation form by default', function(done) {
+                    assert.equal(basic._page, 'form');
+                    flush(function () {
+                        var form =  Polymer.dom(basic.root).querySelector('div.view[name="form"]'),
+                            formDisplay = window.getComputedStyle(form).display;
+                        assert.equal(formDisplay, 'block');
+                        done();
+                    });
+                });
+
+                test('the component should not be updating or updated by default', function() {
+                    assert.equal(basic.updating, false);
+                    assert.equal(basic.updated, false);
+                });
+
+                test('there should be no update error by default', function() {
+                    assert.equal(basic.error, null);
+                    assert.equal(basic._updateError, false);
+                });
+
+                test('the errors should be an empty object by default', function() {
+                    assert.isObject(basic.errors);
+                    assert.lengthOf(Object.keys(basic.errors), 0);
+                });
+            });
+
+            suite('Updating the component', function() {
+                test('the email confirmation should be validated as an email', function() {
+                    updated._emailConfirmation = invalidEmail;
+                    updated._validateEmailConfirmation(new CustomEvent({}));
+                    assert.equal(updated.errors.email, 'Please enter a valid email address.');
+                });
+
+                test('the email confirmation should be validated agains the email provided', function() {
+                    updated._emailConfirmation = altEmail;
+                    updated._validateEmailConfirmation(new CustomEvent({}));
+                    assert.equal(updated.errors.confirmation, 'The email provided does not match the email for your account');
+                });
+
+                test('confirming the email should show the confirmation page', function(done) {
+                    updated._emailConfirmation = email;
+                    updated._validateEmailConfirmation(new CustomEvent({}));
+                    assert.equal(updated._page, 'confirmation');
+                    flush(function () {
+                        var confirmation =  Polymer.dom(updated.root).querySelector('div.view[name="confirmation"]'),
+                            confirmationDisplay = window.getComputedStyle(confirmation).display;
+                        assert.equal(confirmationDisplay, 'block');
+                        done();
+                    });
+                });
+
+                test('clicking the confirmation button should fire the deletion event', function(done) {
+                    updated.addEventListener('delete-account', (e) => {
+                        done();
+                    });
+                    var confirmationButton =  Polymer.dom(updated.root).querySelector('div.view[name="confirmation"] kwc-button');
+                    confirmationButton.click();
+                });
+            });
+        </script>
+    </body>
 </html>

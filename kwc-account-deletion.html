@@ -4,6 +4,7 @@
 <link rel="import" href="../paper-spinner/paper-spinner-lite.html">
 <link rel="import" href="../kwc-style/kwc-style.html">
 <link rel="import" href="../kwc-button/kwc-button.html">
+<link rel="import" href="../kwc-behaviours/kano-validation.html">
 
 
 <!--
@@ -58,6 +59,9 @@ A small component to allow the user to delete their account.
             :host .view.updated,
             :host .view.error {
                 text-align: center;
+            }
+            :host .view.confirmation p {
+                color: var(--color-cinnabar);
             }
             :host .view.updating p,
             :host .view.updated p,
@@ -115,7 +119,7 @@ A small component to allow the user to delete their account.
                              variant="tertiary"
                              square
                              on-tap="_validateEmailConfirmation">
-                     Submit
+                     Confirm
                  </kwc-button>
             </form>
         </div>
@@ -127,6 +131,12 @@ A small component to allow the user to delete their account.
                         square
                         on-tap="_confirmDeletion">
                 Confirm
+            </kwc-button>
+            <kwc-button type="button"
+                        variant="tertiary"
+                        square
+                        on-tap="_reset">
+                Cancel
             </kwc-button>
         </div>
         <div class="view updating" name="updating">
@@ -156,6 +166,9 @@ A small component to allow the user to delete their account.
     <script>
         Polymer({
             is: 'kwc-account-deletion',
+            behaviors: [
+                Kano.Validation.Behaviour
+            ],
             properties: {
                 /** The user's email, provided by the parent component */
                 email: {
@@ -176,7 +189,8 @@ A small component to allow the user to delete their account.
                 },
                 /** The update error (if applicable) */
                 error: {
-                    type: String
+                    type: String,
+                    value: null
                 },
                 /** The errors for each field in the form */
                 errors: {
@@ -185,10 +199,17 @@ A small component to allow the user to delete their account.
                         return {}
                     }
                 },
-                /** An array of error messages computed from the errors object */
+                /**
+                 * An array of error messages computed from the errors object
+                 */
                 _errorMessages: {
                     type: Array,
                     computed: '_computeErrorMessages(errors.*)'
+                },
+                /** String to determine which page/view should be shown */
+                _page: {
+                    type: String,
+                    value: 'form'
                 },
                 /**
                  * Boolean to indicate whether there has been an error with
@@ -197,7 +218,7 @@ A small component to allow the user to delete their account.
                 _updateError: {
                     type: Boolean,
                     computed: '_computeUpdateError(error)',
-                    obserer: '_updateErrored'
+                    observer: '_updateErrored'
                 },
                 /** Boolean to indicate whether the email has been updated */
                 updated: {
@@ -210,7 +231,7 @@ A small component to allow the user to delete their account.
                     type: Boolean,
                     value: false,
                     observer: '_updating'
-                },
+                }
             },
             /** Clear all errors */
             _clearErrors () {
@@ -299,13 +320,16 @@ A small component to allow the user to delete their account.
              */
             _validateEmailConfirmation (e) {
                 e.preventDefault();
-                if (this._emailConfirmation === this.email) {
+                if (this.validateEmail(this._emailConfirmation)) {
                     this.set('errors.email', null);
-                    this._page = 'confirmation';
-                    this._emailValid = true;
-                } else {
-                    this._emailValid = false;
-                    this.set('errors.email', 'The email provided does not match the email for your account');
+                    if (this._emailConfirmation === this.email) {
+                        this.set('errors.confirmation', null);
+                        this._page = 'confirmation';
+                        this._emailValid = true;
+                    } else {
+                        this._emailValid = false;
+                        this.set('errors.confirmation', 'The email provided does not match the email for your account');
+                    }
                 }
             }
         });
