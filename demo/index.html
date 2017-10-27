@@ -27,8 +27,8 @@
                 <template is="dom-bind" id="demo">
                     <p class="introduction">Account email is <strong>[[email]]</strong></p>
                     <kwc-account-deletion email="[[email]]"
-                                          updating="[[updating]]"
-                                          updated="[[updated]]"
+                                          updating="{{updating}}"
+                                          updated="{{updated}}"
                                           on-delete-account="deleteAccount">
                     </kwc-account-deletion>
                 </template>
@@ -37,10 +37,10 @@
                 document.addEventListener('WebComponentsReady', () => {
                     demo.email = 'test@kano.me';
                     demo.deleteAccount = function (e) {
-                        demo.updating = true;
+                        demo.set('updating', true);
                         window.setTimeout(() => {
-                            demo.updating = false;
-                            demo.updated = true;
+                            demo.set('updating', false);
+                            demo.set('updated', true);
                         }, 1500);
                     }
                 });
